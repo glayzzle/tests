@@ -10,7 +10,7 @@
 var util = require('util');
 var fs = require('fs');
 var path = require('path');
-var PHP = require('../src/php');
+var PHP = require('../glayzzle/src/php');
 
 function printVersion() {
   util.puts('Glayzzle version ' + PHP.VERSION);
@@ -237,7 +237,7 @@ function test(filename) {
 
 // rebuilds the parser
 console.log('\nRefresh parser...\n');
-require('../src/builder').compile(
+require('../glayzzle/src/builder').compile(
   function() {
     console.log('\n*** TESTING ***\n');
     if (options.filename) {
