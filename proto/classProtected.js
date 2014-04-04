@@ -1,6 +1,6 @@
 
 // using http://ejohn.org/blog/simple-javascript-inheritance/
-var Class = require('../src/compat/class');
+var Class = require('../glayzzle/src/compat/class');
 
 // declare the bar class
 var bar = (function() {
@@ -29,7 +29,7 @@ var barChild = (function() {
                 protectedVar: "inheritedProtectedVar"
             });
         }
-    });
+    }).__class;
 }());
 
 var myBar = new bar();
