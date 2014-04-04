@@ -3,7 +3,7 @@ var Class = require('../../glayzzle/src/compat/class');
 "use strict";
 
 // declare the foo class
-var foo = Class('father')
+var foo = Class('foo')
   .public({
     name: 'John Doe',
     __construct: function() {
@@ -19,4 +19,20 @@ var foo = Class('father')
 
 // create an instance
 var john = new foo();
-console.log(john.name);
+console.log('--', john.name);
+
+// declare the foo class
+var bar = Class('bar')
+  .extends(foo)
+  .public({
+    name: 'John Bar',
+    __construct: function() {
+      console.log('Hello bar');
+    }
+  })
+.getPrototype();
+
+// create an instance
+var john = new bar();
+console.log('--', john.name);
+
