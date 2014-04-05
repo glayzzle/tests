@@ -62,7 +62,7 @@ class foo {
   public function aa($arg) {
     /** code here **/
   }
-  public static function bb($arg) {
+  public static function bb($arg1, $arg2 = 123) {
     /** code here **/
   }
   /**
