@@ -11,7 +11,6 @@ var util = require('util');
 var fs = require('fs');
 var path = require('path');
 var PHP = require('../glayzzle/src/php');
-
 function printVersion() {
   util.puts('Glayzzle version ' + PHP.VERSION);
 }
@@ -107,101 +106,13 @@ if ( !options.filename && !options.path ) {
 
 process.env.DEBUG = options.debug;
 
-// declare a file running test with phpt format
-function test_phpt(data) {
-  try {
-    var test = {};
-    var mode = null;
-    data.forEach(function(line) {
-      if (line.substring(0, 2) == '--') {
-        mode = line.substring(2, line.length - 2);
-        test[mode] = '';
-      } else {
-        test[mode] += line + '\r\n';
-      }
-    });
-    console.log('   >> Start test : ' + test.TEST);
-    var writer = {
-      buffer: '',
-      write: function(output) {
-        this.buffer += output;
-      }
-    };
-    PHP.clean().eval(test.FILE.substring(5), false, writer);
-    if (test['EXPECTF-'] != writer.buffer) {
-      console.log('Expected : ' + JSON.stringify(test['EXPECTF-']));
-      console.log('Found : ' + JSON.stringify(writer.buffer));
-      return false;
-    } else return true;
-  } catch(e) {
-    util.error( (e.stack || e) + '\n' );
-    return false;
-  }
-}
-
-// runs the specified filename
-function test_php(filename) {
-  return (PHP.clean().require(filename) !== false);
-}
-
-// runs a parser file : test parsing behaviours
-function test_parser(data) {
-  try {
-    console.log('   >> Start test : ' + data.shift());
-    var test = {
-      buffer: '',
-      mode: ''
-    };
-    var tests =  [];
-    data.forEach(function(line) {
-      if (line.substring(0, 2) == '--') {
-        if (test.mode != '') tests.push(test);
-        test = {
-          buffer: '', mode: line.substring(2, line.length - 2)
-        };
-      } else {
-        test.buffer += line + '\r\n';
-      }
-    });
-    if (test) tests.push(test);
-    var writer;
-    var ok;
-    for(var i = 0; i < tests.length; i++) {
-      test=tests[i];
-      writer = {
-        buffer: '',
-        write: function(output) {
-          this.buffer += output;
-        }
-      };
-      console.log('   mode : ' + test.mode);
-      if (test.mode.substring(0, 4) == 'FAIL') {
-        ok = false;
-        try {
-          PHP.clean().eval(test.buffer, false, writer);
-          ok = true;
-        } catch(e) {
-          ok = false;
-        }
-        if (ok) {
-          throw new Error('Test should fail to parse : \n>> ' + test.buffer);
-        }
-      } else {
-        try {
-          PHP.clean().eval(test.buffer, false, writer);
-          if (options.debug > 0) console.log('Output :' + writer.buffer);
-        } catch(e) {
-          e.source = test.buffer;
-          throw e;
-        }
-      }
-    }
-    return true;
-  } catch(e) {
-    PHP.context.parseError(e, e.source);
-    return false;
-  }
-}
+// Load tests handlers
+var engines = [
+  require('./formats/parser')
+  ,require('./formats/phpt')
+  ,require('./formats/token')
+  ,require('./formats/php')
+];
 
 // gets the extension of the specified filename
 function getExtension(filename) {
@@ -214,21 +125,20 @@ function test(filename) {
   console.log(' + ' + filename);
   try {
     var extension = getExtension(filename);
-    if (extension == '.php') {
-      return test_php(filename);
-    } else {
-      var data = fs.readFileSync(filename).toString().split('\r\n');
-      switch(extension) {
-        case '.phpt':
-          return test_phpt(data);
-          break;
-        case '.parser':
-          return test_parser(data);
-          break;
-        default:
-          abort('\nUnrecognized extension "'+getExtension(filename)+'" for ' + filename + ', expected a phpt or parse file');
+    for(var i = 0; i<engines.length; i++) {
+      if (engines[i].handles(filename, extension)) {
+        if (engines[i].explode) {
+          return engines[i].run(
+            fs.readFileSync(filename).toString().split('\r\n')
+            , filename
+            , PHP
+          );
+        } else {
+          return engines[i].run(filename, PHP);
+        }
       }
     }
+    abort('\nUnrecognized extension "'+getExtension(filename)+'" for ' + filename);
   } catch(e) {
     util.error( (e.stack || e) + '\n' );
     return false;
@@ -239,14 +149,15 @@ function test(filename) {
 console.log('\nRefresh parser...\n');
 require('../glayzzle/src/builder').compile(
   function() {
-    console.log('\n*** TESTING ***\n');
+    console.log('\n*** START TESTING ***\n');
     if (options.filename) {
       if (!test(options.filename)) {
         abort('Error: test FAILED !!!');
       } else {
         console.log('Success');
       }
-      // fs.readdir()
+    } else if (options.path) {
+      // @todo fs.readdir()
     }
   }
   , function(err) {
