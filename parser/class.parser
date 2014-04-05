@@ -1,7 +1,9 @@
 Test class parser
---PASS--
+--PASS @todo handle interfaces --
+class titi { }
 class toto extends titi implements tata {}
 --PASS--
+class titi { }
 class /** aa **/ toto 
   extends titi 
   implements tata, coincoin {
@@ -19,8 +21,14 @@ class { }
 class zz;
 --FAIL--
 abstract final class zz { }
---PASS @todo should FAIL -- to be fixed (at builder time ?)--
+--FAIL--
 class a extends implements { }
+--FAIL--
+class extends { }
+--FAIL--
+class implements { }
+--FAIL--
+class a implements { }
 --FAIL--
 class a { 
   const B;
@@ -66,4 +74,10 @@ class foo {
   function aa($b) {
     // aaa
   }
+}
+--PASS--
+class foo {
+  static public $a = 123;
+  protected static  $b, $c;
+  private static  $d = array();
 }
