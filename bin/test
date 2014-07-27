@@ -112,6 +112,33 @@ if (options.build) {
     util.puts('Reading ' + files[i]);
     buffer += fs.readFileSync(GLAYZZLE_PATH + '/grammar/' + files[i], "utf8");
   }
+  
+  // reading imports
+  var importRegex = /^@import\s+'([A-Za-z0-9\-_\.\\\/]*)'$/mg;
+  var files = [];
+  match = importRegex.exec(buffer);
+  while (match != null) {
+    files.push(match[1]);
+    match = importRegex.exec(buffer);
+  }
+  var imports = {};
+  if (files && files.length > 0) {
+    for(var i = 0; i < files.length; i++) {
+      util.puts('Imports ' + files[i]);
+      imports[files[i]] = fs.readFileSync(
+        GLAYZZLE_PATH + '/grammar/' + files[i]
+      );
+    }
+  } else {
+    files = [];
+  }
+  buffer = buffer.replace(
+    importRegex,
+    function(match, file) {
+      return imports[file];
+    }
+  );
+  
   // generating the parser
   util.puts('');
   util.puts('...Parsing the parser');
