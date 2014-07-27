@@ -1,46 +1,42 @@
 Glayzzle Tests
 ==============
 
-Contains all unit tests for the Glayzzle project
+Contains all unit tests for the Glayzzle project. If you want to extend and
+improve glayzzle, you have to work with this project.
 
+Performed actions :
 
-First bench :
+ - Rebuilds the parser
+ - Tests tokenizer
+ - Tests grammar
+ - Tests runtime results
+ - Checks execution time
+
+Quick Start :
 -------------
 
-## The famous Fibonnaci benchmark :
+Check out the vagrant devbox, everything is already installed :
+https://github.com/glayzzle/devbox
 
+Rebuild the parser :
+--------------------
+
+The parser is based on jison library (Bison compliant) :
+http://zaach.github.io/jison/
+
+To rebuild the parser just use :
 ```
-// THE ORIGINAL CLI OUTPUT :
-~$ php ../proto/fibo.php
-Hello world :
-The result is : 832040
-Run in 1.872sec
-
-// THE NODEJS OUTPUT
-~/bin $ node php -f ../proto/fibo.php
-Hello world :
-The result is : 832040
-Run in 0.295sec
-```
-
-NodeJS is naturally many times more rapid than PHP with it's JIT engine, 
-so that's normal that Glayzzle keep this benefit...
-
-Test & Rebuild :
-----------------
-
-You will need pegjs library :
-```
-npm install pegjs
+cd /vagrant/tests/bin
+test --build
 ```
 
-NOTE : The lexer use @import keywords to use external lexer files and this feature is not supported by pegjs so the only way to generate the lexer (to src/parser.js) is to launch a test.
+The lexer and grammar files are located to `/vagrant/glayzzle/src/grammar`.
 
+ * `build.js` exports the array of files to be joined for building the parser
+ * `tokens.js` exports an associative array of token and their associated values
+ * `scanner.l` contains the tokenizer (written in a Flex syntax)
+ * `main.y` contains the parser entry point (headers)
 
-Show some debug (the debug parameter is the nesting level on AST output) :
-```
-~/bin $ node test --debug 5 ../proto/fibo.php
-```
-
-To improve the lexer, take a look at :
-http://pegjs.majda.cz/documentation
+Note : to keep the parser clean and easy to maintain, grammar is splitted in 
+files, each handling a specific aspect of the language (ex : arithmetic, 
+function, loop...)
