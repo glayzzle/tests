@@ -7,10 +7,11 @@
  * @license BSD-3-Clause
  */
 
+var GLAYZZLE_PATH = '../../glayzzle/src';
 var util = require('util');
 var fs = require('fs');
 var path = require('path');
-var PHP = require('../glayzzle/src/php');
+var PHP = require(GLAYZZLE_PATH + '/php');
 function printVersion() {
   util.puts('Glayzzle version ' + PHP.VERSION);
 }
@@ -18,6 +19,7 @@ function printVersion() {
 function printHelp() {
   util.puts('Usage: test [options] [-f] <file>');
   util.puts('');
+  util.puts('  --build                        Rebuilds the parser and overwrite it')
   util.puts('  --debug [0-9]+                 Enables debug ouput (with a specific level)');
   util.puts('  -f <file>                      Parse and test the specified file');
   util.puts('  -d <path>                      Parse each file in the specified path')
@@ -35,6 +37,7 @@ function abort(message) {
 
 /* Arguments */
 var options = {
+  build: false,
   debug: 0,
   filename: null,
   path: null,
@@ -56,6 +59,10 @@ while (args.length > 0 && isOption(args[0])) {
     case '-f':
       nextArg();
       options.filename = args[0];
+      break;
+
+    case '--build':
+      options.build = true;
       break;
 
     case '--debug':
@@ -88,6 +95,36 @@ while (args.length > 0 && isOption(args[0])) {
       abort('Unknown option: ' + args[0] + '.');
   }
   nextArg();
+}
+
+// REBUILDS THE PARSER
+if (options.build) {
+
+  util.puts('** BUILDING MODE **');
+  util.puts('');
+
+  var jison = require('jison');
+  var files = require(GLAYZZLE_PATH + '/grammar/build.js');
+
+  // reading parser files
+  var buffer = '';
+  for(var i = 0; i < files.length; i++) {
+    util.puts('Reading ' + files[i]);
+    buffer += fs.readFileSync(GLAYZZLE_PATH + '/grammar/' + files[i], "utf8");
+  }
+  // generating the parser
+  util.puts('');
+  util.puts('...Parsing the parser');
+  var parser = new jison.Parser(buffer);
+  util.puts('...Building ' + GLAYZZLE_PATH + '/parser.js');
+  fs.writeFileSync(
+    GLAYZZLE_PATH + '/parser.js',
+    parser.generate()
+  );
+  util.puts('');
+  util.puts('DONE - the parser was rebuilt !');
+  util.puts('');
+  process.exit(0);
 }
 
 
