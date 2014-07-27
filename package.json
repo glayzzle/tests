@@ -1,0 +1,33 @@
+{
+  "name": "glayzzle-tests",
+  "version": "0.0.1",
+  "homepage": "http://glayzzle.com",
+  "description": "Tests suite for glayzzle.",
+  "main": "./bin/test",
+  "bin": {
+    "glz": "./bin/test"
+  },
+  "directories": {
+    "src": "test"
+  },
+  "scripts": {
+    "test": "echo \"See https://github.com/glayzzle/tests\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/glayzzle/tests.git"
+  },
+  "author": "Ioan Chiriac",
+  "contributors": [
+    { "name" : "Anthony Terrien"
+      , "url" : "http://anthonyterrien.com/"
+    }
+  ],
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/glayzzle/glayzzle/issues"
+  },
+  "dependencies": {
+    "jison": "latest"
+  }
+}
