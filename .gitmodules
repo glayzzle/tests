@@ -1,3 +1,6 @@
 [submodule "glayzzle"]
 	path = glayzzle
 	url = https://github.com/Glayzzle/glayzzle
+[submodule "token/zf2"]
+	path = token/zf2
+	url = https://github.com/zendframework/zf2.git
