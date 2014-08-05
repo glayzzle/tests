@@ -19,11 +19,12 @@ function printVersion() {
 function printHelp() {
   util.puts('Usage: test [options] [-f] <file>');
   util.puts('');
-  util.puts('  --build                        Rebuilds the parser and overwrite it')
+  util.puts('  --build                        Rebuilds the parser and overwrite it');
+  util.puts('  --lexer                        Rebuilds only the lexer');
   util.puts('  --debug [0-9]+                 Enables debug ouput (with a specific level)');
   util.puts('  -f <file>                      Parse and test the specified file');
-  util.puts('  -d <path>                      Parse each file in the specified path')
-  util.puts('  -r                             Use recursivity with the specified path')
+  util.puts('  -d <path>                      Parse each file in the specified path');
+  util.puts('  -r                             Use recursivity with the specified path');
   util.puts('  -v, --version                  Print version information and exit');
   util.puts('  -h, --help                     Print help and exit');
 }
@@ -38,6 +39,7 @@ function abort(message) {
 /* Arguments */
 var options = {
   build: false,
+  lexer: false,
   debug: 0,
   filename: null,
   path: null,
@@ -64,6 +66,11 @@ while (args.length > 0 && isOption(args[0])) {
     case '--build':
       options.build = true;
       break;
+
+    case '--lexer':
+      options.lexer = true;
+      break;
+
 
     case '--debug':
       nextArg();
@@ -98,7 +105,42 @@ while (args.length > 0 && isOption(args[0])) {
 }
 
 // REBUILDS THE PARSER
-if (options.build) {
+if (options.build || options.lexer) {
+
+  // helper for reading a list of files
+  var readParserFiles = function(files) {
+    var buffer = '';
+    for(var i = 0; i < files.length; i++) {
+      util.puts('Reading ' + files[i]);
+      buffer += fs.readFileSync(GLAYZZLE_PATH + '/grammar/' + files[i], "utf8");
+    }
+    
+    // reading imports
+    var importRegex = /^@import\s+'([A-Za-z0-9\-_\.\\\/]*)'$/mg;
+    var files = [];
+    match = importRegex.exec(buffer);
+    while (match != null) {
+      files.push(match[1]);
+      match = importRegex.exec(buffer);
+    }
+    var imports = {};
+    if (files && files.length > 0) {
+      for(var i = 0; i < files.length; i++) {
+        util.puts('Imports ' + files[i]);
+        imports[files[i]] = fs.readFileSync(
+          GLAYZZLE_PATH + '/grammar/' + files[i]
+        );
+      }
+    } else {
+      files = [];
+    }
+    return buffer.replace(
+      importRegex,
+      function(match, file) {
+        return imports[file];
+      }
+    );
+  };
 
   util.puts('** BUILDING MODE **');
   util.puts('');
@@ -106,51 +148,58 @@ if (options.build) {
   var jison = require('jison');
   var files = require(GLAYZZLE_PATH + '/grammar/build.js');
 
-  // reading parser files
-  var buffer = '';
-  for(var i = 0; i < files.length; i++) {
-    util.puts('Reading ' + files[i]);
-    buffer += fs.readFileSync(GLAYZZLE_PATH + '/grammar/' + files[i], "utf8");
-  }
-  
-  // reading imports
-  var importRegex = /^@import\s+'([A-Za-z0-9\-_\.\\\/]*)'$/mg;
-  var files = [];
-  match = importRegex.exec(buffer);
-  while (match != null) {
-    files.push(match[1]);
-    match = importRegex.exec(buffer);
-  }
-  var imports = {};
-  if (files && files.length > 0) {
-    for(var i = 0; i < files.length; i++) {
-      util.puts('Imports ' + files[i]);
-      imports[files[i]] = fs.readFileSync(
-        GLAYZZLE_PATH + '/grammar/' + files[i]
-      );
-    }
-  } else {
-    files = [];
-  }
-  buffer = buffer.replace(
-    importRegex,
-    function(match, file) {
-      return imports[file];
-    }
-  );
-  
-  // generating the parser
+  // generating the lexer
+  var lexer = readParserFiles(files['lexer']); 
   util.puts('');
-  util.puts('...Parsing the parser');
-  var parser = new jison.Parser(buffer);
-  util.puts('...Building ' + GLAYZZLE_PATH + '/parser.js');
+  util.puts('...Parsing the lexer');
+  var parser = new jison.Parser(
+    lexer + '\n'
+    + '%pure_parser\n'
+    + '%expect 3\n'
+    + '%start start\n'
+    + '%%\n'
+    + 'start: [^];\n'
+  );
+  util.puts('...Building ' + GLAYZZLE_PATH + '/lexer.js');
   fs.writeFileSync(
-    GLAYZZLE_PATH + '/parser.js',
-    parser.generate()
+    GLAYZZLE_PATH + '/lexer.js',
+    'var conf = require(\'./php\').context.conf;\n'
+    + fs.readFileSync(GLAYZZLE_PATH + '/grammar/lexer/tokens.js') + '\n'
+    + parser.lexer.generateModule() 
+    + '\n\nmodule.exports = lexer;'
   );
   util.puts('');
-  util.puts('DONE - the parser was rebuilt !');
+  util.puts('DONE - the lexer was rebuilt !');
   util.puts('');
+
+  if (!options.lexer) {
+    // reading parser files
+    var buffer =
+      lexer + 
+      readParserFiles(files['parser'])
+    ;
+    // generating the parser
+    util.puts('');
+    util.puts('...Parsing the grammar');
+    var parser = new jison.Parser(buffer);
+    util.puts('...Building ' + GLAYZZLE_PATH + '/parser.js');
+    parser.lexer.generateModule = function() {
+      return 'var lexer = require(\'./lexer.js\');\n';
+    };
+    fs.writeFileSync(
+      GLAYZZLE_PATH + '/parser.js',
+      parser.generate()
+    );
+    util.puts('');
+    util.puts('DONE - the parser was rebuilt !');
+    util.puts('');
+  
+    // test the parser
+    var builder = require(GLAYZZLE_PATH + '/builder');
+    var AST = builder.getParser().parse('<?php $john = "John"; echo "Hello World $john !";');
+    console.log(AST);
+  }
+
   process.exit(0);
 }
 
@@ -202,29 +251,38 @@ function test(filename) {
         }
       }
     }
-    abort('\nUnrecognized extension "'+getExtension(filename)+'" for ' + filename);
+    console.info('\n(i) IGNORED : unrecognized extension "'+getExtension(filename)+'" for ' + filename);
+    return false;
   } catch(e) {
     util.error( (e.stack || e) + '\n' );
     return false;
   }
 }
 
-// rebuilds the parser
-console.log('\nRefresh parser...\n');
-require('../glayzzle/src/builder').compile(
-  function() {
-    console.log('\n*** START TESTING ***\n');
-    if (options.filename) {
-      if (!test(options.filename)) {
-        abort('Error: test FAILED !!!');
-      } else {
-        console.log('Success');
+// run tests
+console.log('\n*** START TESTING ***\n');
+if (options.filename) {
+  if (!test(options.filename)) {
+    abort('Error: test FAILED !!!');
+  } else {
+    console.log('Success');
+  }
+} else if (options.path) {
+  var testFiles = function(path) {
+    fs.readdir(path, function(err, files) {
+      if (err) throw err;
+      for(var i = 0; i < files.length; i ++) {
+        var file = files[i];
+        if (file[0] != '.') {
+          var stat = fs.statSync(path + file);
+          if (!stat.isDirectory()) {
+            test(path + file);
+          } else if (options.recusive) {
+            testFiles(path + file + '/');
+          }
+        }
       }
-    } else if (options.path) {
-      // @todo fs.readdir()
-    }
-  }
-  , function(err) {
-    abort(err);
-  }
-);
+    });
+  };
+  testFiles(options.path);
+}
