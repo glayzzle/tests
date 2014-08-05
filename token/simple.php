@@ -1,4 +1,11 @@
 Hello world <?= $foo; ?>
-<?php 
+<?php
 
-  echo 'TEST';
+# Old fashion Style Comment
+
+  /**
+   * Multi Line Comment
+   */
+  echo '
+    TEST \'AZERTY\' \r\n\t
+  ';
