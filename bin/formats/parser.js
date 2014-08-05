@@ -11,7 +11,7 @@ module.exports = {
     return ext == '.parser';
   }
   // runs a parser file : test parsing behaviours
-  ,run: function(data) {
+  ,run: function(data, filename, PHP) {
     try {
       console.log('   >> Start test : ' + data.shift());
       var test = {
