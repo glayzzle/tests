@@ -4,3 +4,6 @@
 [submodule "token/zf2"]
 	path = token/zf2
 	url = https://github.com/zendframework/zf2.git
+[submodule "token/drupal"]
+	path = token/drupal
+	url = https://github.com/drupal/drupal.git

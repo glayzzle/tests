@@ -19,8 +19,9 @@
   },
   "author": "Ioan Chiriac",
   "contributors": [
-    { "name" : "Anthony Terrien"
-      , "url" : "http://anthonyterrien.com/"
+    {
+      "name": "Anthony Terrien",
+      "url": "http://anthonyterrien.com/"
     }
   ],
   "license": "BSD-3-Clause",
@@ -28,6 +29,7 @@
     "url": "https://github.com/glayzzle/glayzzle/issues"
   },
   "dependencies": {
-    "jison": "latest"
+    "jison": "latest",
+    "execSync": "~1.0.1-pre"
   }
 }
