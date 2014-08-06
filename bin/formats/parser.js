@@ -55,7 +55,7 @@ module.exports = {
         } else {
           try {
             PHP.clean().eval(test.buffer, false, writer);
-            if (options.debug > 0) console.log('Output :' + writer.buffer);
+            console.log('Output :' + writer.buffer);
           } catch(e) {
             e.source = test.buffer;
             throw e;

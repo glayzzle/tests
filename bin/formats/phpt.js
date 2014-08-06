@@ -4,10 +4,11 @@
  * @author Ioan CHIRIAC
  * @license BSD-3-Clause
  */
+var util = require('util');
 module.exports = {
   explode: true
   ,handles: function(filename, ext) {
-    return ext == '.parser';
+    return ext == '.phpt';
   }
   // declare a file running test with phpt format
   ,run: function(data, filename, PHP) {
