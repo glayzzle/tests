@@ -150,6 +150,62 @@ if (options.build || options.lexer) {
 
   // generating the lexer
   var lexer = readParserFiles(files['lexer']); 
+
+  if (!options.lexer) {
+    // reading parser files
+    var buffer =
+      lexer + 
+      readParserFiles(files['parser'])
+    ;
+    // generating the parser
+    util.puts('');
+    util.puts('...Parsing the grammar');
+
+    var parser = new jison.Parser(buffer);
+    util.puts('...Building ' + GLAYZZLE_PATH + '/parser.js');
+    parser.lexer.generateModule = function() {
+      return 'var lexer = require(\'./lexer.js\');\n';
+    };
+    fs.writeFileSync(
+      GLAYZZLE_PATH + '/parser.js',
+      parser.generate()
+    );
+    util.puts('');
+    util.puts('DONE - the parser was rebuilt !');
+    util.puts('');
+
+  }
+
+  var parser = require(GLAYZZLE_PATH + '/builder').getParser();
+
+  // add default symbols
+  parser.symbols_['T_OPEN_TAG'] = 501;
+  parser.symbols_['T_OPEN_TAG_WITH_ECHO'] = 502;
+  parser.symbols_['T_CLOSE_TAG'] = 503;
+  parser.symbols_['T_WHITESPACE'] = 504;
+  parser.symbols_['T_COMMENT'] = 505;
+  parser.symbols_['T_DOC_COMMENT'] = 506;
+
+  // update the tokenizer
+  var tokens = {};
+  var tokVars = [];
+  for(var tokenId in parser.symbols_) {
+    var token = parser.symbols_[tokenId];
+    if (tokenId.substring(0, 2) == 'T_') {
+      tokens[token] = tokenId;
+      tokVars.push('\n\t' + tokenId + ' = ' + token);
+    }
+  }
+  fs.writeFileSync(
+    GLAYZZLE_PATH + '/grammar/tokens.js',
+    'module.exports = ' + JSON.stringify(tokens) + ';'
+  );
+  fs.writeFileSync(
+    GLAYZZLE_PATH + '/grammar/lexer/tokens.js',
+    'var ' + tokVars.join(',') + ';'
+  );
+  lexer = readParserFiles(files['lexer']);
+
   util.puts('');
   util.puts('...Parsing the lexer');
   var parser = new jison.Parser(
@@ -165,40 +221,18 @@ if (options.build || options.lexer) {
     GLAYZZLE_PATH + '/lexer.js',
     'var conf = require(\'./php\').context.conf;\n'
     + fs.readFileSync(GLAYZZLE_PATH + '/grammar/lexer/tokens.js') + '\n'
+    + fs.readFileSync(GLAYZZLE_PATH + '/grammar/lexer/header.js') + '\n'
     + parser.lexer.generateModule() 
-    + '\n\nmodule.exports = lexer;'
+    + '\n\n' + fs.readFileSync(GLAYZZLE_PATH + '/grammar/lexer/footer.js') 
   );
   util.puts('');
   util.puts('DONE - the lexer was rebuilt !');
   util.puts('');
 
-  if (!options.lexer) {
-    // reading parser files
-    var buffer =
-      lexer + 
-      readParserFiles(files['parser'])
-    ;
-    // generating the parser
-    util.puts('');
-    util.puts('...Parsing the grammar');
-    var parser = new jison.Parser(buffer);
-    util.puts('...Building ' + GLAYZZLE_PATH + '/parser.js');
-    parser.lexer.generateModule = function() {
-      return 'var lexer = require(\'./lexer.js\');\n';
-    };
-    fs.writeFileSync(
-      GLAYZZLE_PATH + '/parser.js',
-      parser.generate()
-    );
-    util.puts('');
-    util.puts('DONE - the parser was rebuilt !');
-    util.puts('');
-  
-    // test the parser
+    /* test the parser
     var builder = require(GLAYZZLE_PATH + '/builder');
     var AST = builder.getParser().parse('<?php $john = "John"; echo "Hello World $john !";');
-    console.log(AST);
-  }
+    console.log(AST); */
 
   process.exit(0);
 }
