@@ -35,6 +35,14 @@ function &aa() { }
 --PASS--
 function aa($a) { }
 --PASS--
+function aa(array $a) { }
+--PASS--
+function aa(array &$a) { }
+--PASS--
+function aa(array &$a = [1, 2, 3]) { }
+--PASS--
+function aa(array &$a, $b) { }
+--PASS--
 function aa(&$a) { }
 --PASS--
 function aa(

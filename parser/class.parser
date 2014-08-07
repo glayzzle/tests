@@ -59,7 +59,7 @@ abstract class aa {
 }
 --PASS--
 class foo {
-  public function aa($arg) {
+  public function aa() {
     /** code here **/
   }
   public static function bb($arg1, $arg2 = 123) {

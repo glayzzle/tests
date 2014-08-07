@@ -1,16 +1,17 @@
 Test namespaces
 --PASS--
-/**
- * Document comment
- */
 namespace MyNameSpace\SubNameSpace;
+echo true;
 --PASS--
+use \com\org\name;
+use framwork\ClassName as Alias;
+--PASS--
+namespace {
+  echo true;
+}
+--PASS--
+namespace MyNameSpace\SubNameSpace {
+  echo 123;
+}
+--FAIL--
 namespace \MyNameSpace\SubNameSpace;
---PASS--
-namespace \MyNameSpace\SubNameSpace {
-}
-namespace \MyNameSpace\OtherNameSpace {
-}
---PASS--
-use \framwork\Class;
-use framwork\Class as Alias;
