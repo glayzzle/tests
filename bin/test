@@ -179,12 +179,12 @@ if (options.build || options.lexer) {
   var parser = require(GLAYZZLE_PATH + '/builder').getParser();
 
   // add default symbols
-  parser.symbols_['T_OPEN_TAG'] = 501;
-  parser.symbols_['T_OPEN_TAG_WITH_ECHO'] = 502;
-  parser.symbols_['T_CLOSE_TAG'] = 503;
-  parser.symbols_['T_WHITESPACE'] = 504;
-  parser.symbols_['T_COMMENT'] = 505;
-  parser.symbols_['T_DOC_COMMENT'] = 506;
+  parser.symbols_['T_OPEN_TAG']             = 9901;
+  parser.symbols_['T_OPEN_TAG_WITH_ECHO']   = 9902;
+  parser.symbols_['T_CLOSE_TAG']            = 9903;
+  parser.symbols_['T_WHITESPACE']           = 9904;
+  parser.symbols_['T_COMMENT']              = 9905;
+  parser.symbols_['T_DOC_COMMENT']          = 9906;
 
   // update the tokenizer
   var tokens = {};
