@@ -7,7 +7,7 @@
  * @license BSD-3-Clause
  */
 
-var GLAYZZLE_PATH = '../../glayzzle/src';
+var GLAYZZLE_PATH = '../../src';
 var util = require('util');
 var fs = require('fs');
 var path = require('path');
@@ -22,6 +22,7 @@ function printHelp() {
   util.puts('  --build                        Rebuilds the parser and overwrite it');
   util.puts('  --lexer                        Rebuilds only the lexer');
   util.puts('  --debug [0-9]+                 Enables debug ouput (with a specific level)');
+  util.puts('  --ast                          Parse and test the AST of specified files');
   util.puts('  -f <file>                      Parse and test the specified file');
   util.puts('  -d <path>                      Parse each file in the specified path');
   util.puts('  -r                             Use recursivity with the specified path');
@@ -40,6 +41,7 @@ function abort(message) {
 var options = {
   build: false,
   lexer: false,
+  ast: false,
   debug: 0,
   filename: null,
   path: null,
@@ -71,6 +73,9 @@ while (args.length > 0 && isOption(args[0])) {
       options.lexer = true;
       break;
 
+    case '--ast':
+      options.ast = true;
+      break;
 
     case '--debug':
       nextArg();
@@ -164,7 +169,7 @@ if (options.build || options.lexer) {
     var parser = new jison.Parser(buffer);
     util.puts('...Building ' + GLAYZZLE_PATH + '/parser.js');
     parser.lexer.generateModule = function() {
-      return 'var lexer = require(\'./lexer.js\');\n';
+      return 'try { var lexer = require(\'./lexer.js\'); } catch(e) { } \n';
     };
     fs.writeFileSync(
       GLAYZZLE_PATH + '/parser.js',
@@ -255,10 +260,11 @@ process.env.DEBUG = options.debug;
 
 // Load tests handlers
 var engines = [
-  require('./formats/parser')
-  ,require('./formats/phpt')
-  ,require('./formats/token')
-  ,require('./formats/php')
+    require('./formats/parser')
+  , require('./formats/phpt')
+  , require('./formats/token')
+  , require('./formats/php')
+  , require('./formats/ast')
 ];
 
 // gets the extension of the specified filename
@@ -271,6 +277,12 @@ function getExtension(filename) {
 function test(filename) {
   console.log(' + ' + filename);
   try {
+    if (options.ast) {
+      return engines[4].run(
+            filename
+          , PHP
+      );
+    }
     var extension = getExtension(filename);
     for(var i = 0; i<engines.length; i++) {
       if (engines[i].handles(filename, extension)) {
