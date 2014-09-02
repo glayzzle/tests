@@ -5,7 +5,8 @@
  * @license BSD-3-Clause
  */
 var fs = require('fs');
-var cmd = require('execSync');
+var cmd = require('./cmd');
+
 module.exports = {
   handles: function(filename, ext) {
     if (ext == '.out') {
