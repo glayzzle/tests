@@ -29,7 +29,8 @@
     "url": "https://github.com/glayzzle/glayzzle/issues"
   },
   "dependencies": {
-    "jison": "latest",
-    "execSync": "~1.0.1-pre"
+    "jison": "~0.4.15",
+    "jison-lex": "~0.3.4",
+    "lex-parser": "~0.1.4"
   }
 }
