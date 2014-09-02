@@ -159,7 +159,7 @@ if (options.build || options.lexer) {
     // reading parser files
     lexer = readParserFiles(files['lexer']);
     var buffer =
-      "%lex\n" + lexer + "/lex\n\n" 
+      "%lex\n" + lexer + "/lex\n\n" +
       readParserFiles(files['parser'])
     ;
     // generating the parser
