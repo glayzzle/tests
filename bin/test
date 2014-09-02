@@ -211,6 +211,7 @@ if (options.build || options.lexer) {
   );
   lexer = readParserFiles(files['lexer']);
 
+  console.log(lexer);
   util.puts('');
   util.puts('...Parsing the lexer');
   var parser = new jison.Parser(
@@ -221,6 +222,7 @@ if (options.build || options.lexer) {
     + '%%\n'
     + 'start: [^];\n'
   );
+  console.log(parser.lexer);
   util.puts('...Building ' + GLAYZZLE_PATH + '/lexer.js');
   fs.writeFileSync(
     GLAYZZLE_PATH + '/lexer.js',
