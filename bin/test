@@ -116,7 +116,7 @@ if (options.build || options.lexer) {
   var readParserFiles = function(files) {
     var buffer = '';
     for(var i = 0; i < files.length; i++) {
-      util.puts('Reading ' + files[i]);
+      util.puts('Reading ' + GLAYZZLE_PATH + '/grammar/' + files[i]);
       buffer += fs.readFileSync(GLAYZZLE_PATH + '/grammar/' + files[i], "utf8");
     }
     
@@ -185,7 +185,7 @@ if (options.build || options.lexer) {
 
 
   // --- START TO UPDATE THE TOKENS DEFINITION FILES :
-  var parser = require(GLAYZZLE_PATH + '/builder').getParser();
+  var parser = require(GLAYZZLE_PATH + '/parser.js').parser;
 
   // add default symbols
   parser.symbols_['T_OPEN_TAG']             = 9901;
@@ -198,11 +198,13 @@ if (options.build || options.lexer) {
   // update the tokenizer
   var tokens = {};
   var tokVars = [];
+  var tokProps = [];
   for(var tokenId in parser.symbols_) {
     var token = parser.symbols_[tokenId];
     if (tokenId.substring(0, 2) == 'T_') {
       tokens[token] = tokenId;
       tokVars.push('\n\t' + tokenId + ' = ' + token);
+      tokProps.push('\n\t' + tokenId + ': ' + token);
     }
   }
   fs.writeFileSync(
@@ -212,6 +214,10 @@ if (options.build || options.lexer) {
   fs.writeFileSync(
     GLAYZZLE_PATH + '/grammar/lexer/tokens.js',
     'var ' + tokVars.join(',') + ';'
+  );
+  fs.writeFileSync(
+    GLAYZZLE_PATH + '/tokens.js',
+    'module.exports = { ' + tokProps.join(',') + '};'
   );
 
   // Refresh the lexer contents with new tokens
