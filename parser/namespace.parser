@@ -4,11 +4,18 @@ namespace MyNameSpace\SubNameSpace;
 echo true;
 --PASS--
 use \com\org\name;
-use framwork\ClassName as Alias;
+use framework\ClassName as Alias;
+use function \framework\ClassName\functionName;
+use function framework\ClassName\functionName;
+use function framework\ClassName\functionName as functionAlias;
+use const framework\ClassName\CONSTANT;
+use const framework\ClassName\CONSTANT as constantAlias;
 --PASS--
+echo true;
 namespace {
-  echo true;
-}
+    echo true;
+};
+echo true;
 --PASS--
 namespace MyNameSpace\SubNameSpace {
   echo 123;
